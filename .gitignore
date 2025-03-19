@@ -1,5 +1,3 @@
 __pycache__/
-*.csv
 *.zip
 logs/
-models/
