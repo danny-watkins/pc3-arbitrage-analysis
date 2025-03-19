@@ -1,0 +1,16 @@
+# Core Scientific Libraries
+numpy
+pandas
+scipy
+matplotlib
+seaborn
+
+# Machine Learning 
+torch             # PyTorch for deep learning
+gymnasium         # OpenAI Gym successor for Reinforcement Learning
+
+# Data Processing
+scikit-learn
+
+# API for Yield Curve Data
+fredapi
