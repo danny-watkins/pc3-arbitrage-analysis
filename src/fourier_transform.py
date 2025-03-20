@@ -3,9 +3,11 @@ fourier_transform.py
 --------------------
 Author: Danny Watkins
 Date: 2025
+
 Description:
 Applies a Fourier Transform (FFT) to Rolling PCA dislocations 
 to detect periodic cycles and filter out noise.
+
 The cutoff frequency is selected **automatically** based on:
 1. The Energy Threshold Method (85% variance retention).
 2. The Elbow Point Method (where adding more frequencies gives diminishing returns).
