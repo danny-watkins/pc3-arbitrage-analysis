@@ -7,11 +7,14 @@ Description:
 Generates PCA visualizations for yield curve data, including both 2D and 3D plots.
 Visualizations include geometric interpretation and projections onto principal components,
 with both original and centered data. Arrows indicate principal component directions.
+Additionally, generates visualizations for PC3 dislocations and mean-reversion analysis,
+including overlays with VIX and monetary policy changes.
 """
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 
@@ -89,11 +92,74 @@ def projection_visualization_3d(data):
     plt.savefig("visuals/3d_projection_with_arrows.png")
     plt.show()
 
-# Load actual yield curve data
-yield_curve_data = load_yield_curve_data("data/yield_curve_data.csv")
+# PC3 Mean-Reversion Visualization with Enhanced Overlay and Correlation Analysis
+def pc3_mean_reversion_visualization(data, vix, policy_changes):
+    # Align all data to the same timeline (2013-2023)
+    start_date = "2013-01-01"
+    end_date = "2023-12-31"
+    data = data.loc[start_date:end_date]
+    vix = vix.loc[start_date:end_date]
+    policy_changes = policy_changes[(policy_changes['Date'] >= start_date) & (policy_changes['Date'] <= end_date)]
 
-# Generate all visualizations
-geometric_interpretation_2d(yield_curve_data[['DGS2', 'DGS10']])
-geometric_interpretation_3d(yield_curve_data[['DGS3MO', 'DGS6MO', 'DGS1']])
-projection_visualization_2d(yield_curve_data[['DGS2', 'DGS10']])
-projection_visualization_3d(yield_curve_data[['DGS3MO', 'DGS6MO', 'DGS1']])
+    # Check if data is loaded correctly
+    if data.empty or vix.empty or policy_changes.empty:
+        print("❌ One or more data frames are empty. Please check data loading.")
+        return
+    else:
+        print("✅ All data frames are loaded correctly.")
+        print(f"PC3 data sample:\n{data.head()}")
+        print(f"VIX data sample:\n{vix.head()}")
+        print(f"Policy change data sample:\n{policy_changes.head()}")
+
+    plt.figure(figsize=(14, 12))
+
+    # Main PC3 and VIX Plot (Overlay)
+    ax1 = plt.subplot(3, 1, 1)
+    sns.lineplot(data=data, x=data.index, y='PC3', label="PC3 Dislocations", color="blue", linewidth=1.5)
+    sns.lineplot(data=data, x=data.index, y='VIX', label="VIX Index", color="purple", linestyle="--", linewidth=1.2)
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=1, label="Mean Reversion Line")
+    plt.title("PC3 Dislocations and VIX Overlay with Policy Change Markers")
+    plt.xlabel("Date")
+    plt.ylabel("PC3 Dislocation / VIX Level")
+    plt.xlim(pd.to_datetime(start_date), pd.to_datetime(end_date))
+
+    # Highlight Policy Changes
+    for date in policy_changes['Date']:
+        plt.axvline(x=date, color='red', linestyle=':', linewidth=1, alpha=0.7, label="Policy Change" if date == policy_changes['Date'].iloc[0] else "")
+
+    plt.legend(loc='upper left')
+
+    # Rolling Correlation Plot
+    ax2 = plt.subplot(3, 1, 2)
+    rolling_corr = data['PC3'].rolling(window=30).corr(data['VIX'])
+    sns.lineplot(data=rolling_corr, label="30-Day Rolling Correlation (PC3 vs VIX)", color="green")
+    plt.title("Rolling Correlation between PC3 and VIX")
+    plt.xlabel("Date")
+    plt.ylabel("Correlation Coefficient")
+    plt.axhline(y=0, color='black', linestyle='--', linewidth=1)
+
+    # Correlation Coefficient Bar Plot by Market Regime
+    ax3 = plt.subplot(3, 1, 3)
+    regimes = data['Market Regime'].unique()
+    correlations = {}
+    for regime in regimes:
+        regime_data = data[data['Market Regime'] == regime]
+        correlation = regime_data['PC3'].corr(regime_data['VIX'])
+        correlations[regime] = correlation
+
+    sns.barplot(x=list(correlations.keys()), y=list(correlations.values()), palette="viridis")
+    plt.title("Correlation between PC3 and VIX by Market Regime")
+    plt.xlabel("Market Regime")
+    plt.ylabel("Correlation Coefficient")
+    plt.ylim(-1, 1)
+
+    plt.tight_layout()
+
+    # Save the plot to the visuals folder
+    output_path = "visuals/pc3_mean_reversion_enhanced_viz.png"
+    try:
+        plt.savefig(output_path, dpi=300)
+        print(f"✅ Visualization saved successfully to {output_path}")
+    except Exception as e:
+        print(f"❌ Error saving visualization: {e}")
+    plt.close()

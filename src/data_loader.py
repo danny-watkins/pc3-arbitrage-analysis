@@ -4,10 +4,9 @@ data_loader.py
 Author: Danny Watkins
 Date: 2025
 Description: 
-This script fetches historical U.S. Treasury yield curve data 
-from the FRED API and stores it in a CSV file for further analysis.
-Additionally, it generates a covariance matrix plot of the yield curve data 
-and saves it to the 'visuals' folder.
+This script fetches historical U.S. Treasury yield curve data and VIX data from the FRED API.
+Additionally, it downloads significant monetary policy changes (based on Federal Funds Rate),
+generates a covariance matrix plot of the yield curve data, and saves all data to the 'data' folder.
 *Must register and get unique FRED API key (FREE) from https://fred.stlouisfed.org/docs/api/api_key.html*
 """
 
@@ -31,7 +30,7 @@ fred = Fred(api_key=FRED_API_KEY)
 # Define maturities to fetch from FRED
 maturities = ["DGS3MO", "DGS6MO", "DGS1", "DGS2", "DGS5", "DGS10", "DGS20", "DGS30"]
 
-# Fetch Data for the last 10 years (adjust this date range as needed)
+# Fetch Yield Curve Data for the last 10 years (adjust this date range as needed)
 logging.info("Fetching yield curve data from FRED...")
 yield_curve = pd.DataFrame({maturity: fred.get_series(maturity, start_date="2013-01-01") for maturity in maturities})
 
@@ -44,10 +43,49 @@ yield_curve.index = pd.to_datetime(yield_curve.index)
 # Filter data to include only the last 10 years (2013-2023)
 filtered_yield_curve = yield_curve.loc['2013-01-01':'2023-12-31']
 
-# Save the dataset for analysis
+# Save the yield curve dataset for analysis
 os.makedirs("data", exist_ok=True)
 filtered_yield_curve.to_csv("data/yield_curve_data.csv", index_label="Date")
 logging.info(f"✅ Yield curve data saved successfully. Total rows: {len(filtered_yield_curve)}")
+
+# Fetch VIX Data from FRED (CBOE Volatility Index)
+logging.info("Fetching VIX data from FRED...")
+vix_data = fred.get_series("VIXCLS", start_date="2013-01-01")
+vix_data = vix_data.dropna()
+vix_data = vix_data.loc['2013-01-01':'2023-12-31']
+
+# Convert to DataFrame and save
+vix_df = pd.DataFrame(vix_data, columns=["VIX"])
+vix_df.index = pd.to_datetime(vix_df.index)
+vix_df.to_csv("data/vix_data.csv", index_label="Date")
+logging.info(f"✅ VIX data saved successfully. Total rows: {len(vix_df)}")
+
+# Fetch Federal Funds Rate (Effective Federal Funds Rate - FEDFUNDS)
+logging.info("Fetching Federal Funds Rate data from FRED...")
+fed_funds = fred.get_series("FEDFUNDS", start_date="2013-01-01")
+fed_funds = fed_funds.dropna()
+fed_funds.index = pd.to_datetime(fed_funds.index)
+
+# Calculate Daily Changes to Detect Major Policy Shifts
+fed_funds_changes = fed_funds.diff().abs()
+significant_changes = fed_funds_changes > 0.25  # Threshold for significant rate change (0.25%)
+
+# Create DataFrame for Monetary Policy Changes
+monetary_policy_changes = pd.DataFrame({
+    "Date": fed_funds.index,
+    "Rate Change": fed_funds_changes,
+    "Significant Change": significant_changes.astype(int)
+}).dropna()
+
+# Filter for significant changes only and limit to the last 10 years
+significant_events = monetary_policy_changes[monetary_policy_changes["Significant Change"] == 1]
+significant_events = significant_events[
+    (significant_events["Date"] >= "2013-01-01") & (significant_events["Date"] <= "2023-12-31")
+]
+
+# Save to CSV
+significant_events[["Date", "Significant Change"]].to_csv("data/monetary_policy.csv", index=False)
+logging.info(f"✅ Monetary policy change data saved successfully. Total significant changes: {len(significant_events)}")
 
 # Plotting the covariance matrix of the yield curve data
 def plot_covariance_matrix(data):
