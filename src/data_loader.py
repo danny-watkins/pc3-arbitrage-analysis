@@ -32,7 +32,7 @@ maturities = ["DGS3MO", "DGS6MO", "DGS1", "DGS2", "DGS5", "DGS10", "DGS20", "DGS
 
 # Fetch Yield Curve Data for the last 10 years (adjust this date range as needed)
 logging.info("Fetching yield curve data from FRED...")
-yield_curve = pd.DataFrame({maturity: fred.get_series(maturity, start_date="2013-01-01") for maturity in maturities})
+yield_curve = pd.DataFrame({maturity: fred.get_series(maturity, start_date="2015-01-01") for maturity in maturities})
 
 # Handle missing values by forward-filling as opposed to .dropna()
 yield_curve.ffill(inplace=True)
@@ -41,7 +41,7 @@ yield_curve.ffill(inplace=True)
 yield_curve.index = pd.to_datetime(yield_curve.index)
 
 # Filter data to include only the last 10 years (2013-2023)
-filtered_yield_curve = yield_curve.loc['2013-01-01':'2023-12-31']
+filtered_yield_curve = yield_curve.loc['2015-01-01':'2025-01-01']
 
 # Save the yield curve dataset for analysis
 os.makedirs("data", exist_ok=True)
@@ -52,7 +52,7 @@ logging.info(f"✅ Yield curve data saved successfully. Total rows: {len(filtere
 logging.info("Fetching VIX data from FRED...")
 vix_data = fred.get_series("VIXCLS", start_date="2013-01-01")
 vix_data = vix_data.dropna()
-vix_data = vix_data.loc['2013-01-01':'2023-12-31']
+vix_data = vix_data.loc['2015-01-01':'2025-01-01']
 
 # Convert to DataFrame and save
 vix_df = pd.DataFrame(vix_data, columns=["VIX"])
@@ -62,7 +62,7 @@ logging.info(f"✅ VIX data saved successfully. Total rows: {len(vix_df)}")
 
 # Fetch Federal Funds Rate (Effective Federal Funds Rate - FEDFUNDS)
 logging.info("Fetching Federal Funds Rate data from FRED...")
-fed_funds = fred.get_series("FEDFUNDS", start_date="2013-01-01")
+fed_funds = fred.get_series("FEDFUNDS", start_date="2015-01-01")
 fed_funds = fed_funds.dropna()
 fed_funds.index = pd.to_datetime(fed_funds.index)
 
@@ -80,7 +80,7 @@ monetary_policy_changes = pd.DataFrame({
 # Filter for significant changes only and limit to the last 10 years
 significant_events = monetary_policy_changes[monetary_policy_changes["Significant Change"] == 1]
 significant_events = significant_events[
-    (significant_events["Date"] >= "2013-01-01") & (significant_events["Date"] <= "2023-12-31")
+    (significant_events["Date"] >= "2013-01-01") & (significant_events["Date"] <= "2025-01-01")
 ]
 
 # Save to CSV

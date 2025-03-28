@@ -18,7 +18,7 @@ from sklearn.preprocessing import StandardScaler
 # Load Yield Curve Data
 yield_curve = pd.read_csv("data/yield_curve_data.csv", parse_dates=["Date"], index_col="Date")
 
-# Ensure maturities are sorted the same way as `identify_butterfly_maturities.py`
+# Ensure maturities are sorted the same way as identify_butterfly_maturities.py
 def extract_maturity_number(maturity_label):
     maturity = maturity_label.replace("DGS", "").replace("MO", "").replace("Y", "")
     is_month = "MO" in maturity_label  # True for MO maturities
@@ -66,11 +66,11 @@ for i in range(len(yield_curve) - window_size):
         pca_output[f"PC2_{maturity}"] = pca.components_[1][j]
         pca_output[f"PC3_{maturity}"] = pca.components_[2][j]
 
-    # Compute the actual PC3 time series (PC3 dislocations)
+    # Compute the actual PC3 time series (PC3 movements)
     pc3_series = np.dot(window_data, pca.components_[2])
 
-    # Save the most recent PC3 dislocation
-    pca_output["PC3_Dislocation"] = pc3_series[-1]
+    # Save the most recent PC3 value
+    pca_output["PC3_Value"] = pc3_series[-1]
 
     rolling_pca_results.append(pca_output)
 
@@ -100,14 +100,14 @@ plt.grid()
 plt.savefig("visuals/pca_explained_variance.png")
 plt.show()
 
-# Plot PC3 Dislocation Time Series
+# Plot PC3 Value Time Series
 plt.figure(figsize=(12, 6))
-plt.plot(rolling_pca_df["date"], rolling_pca_df["PC3_Dislocation"], color="blue")
-plt.title("PC3 Dislocation Time Series")
+plt.plot(rolling_pca_df["date"], rolling_pca_df["PC3_Value"], color="blue")
+plt.title("PC3 Value Time Series")
 plt.xlabel("Date")
-plt.ylabel("PC3 Dislocation")
+plt.ylabel("PC3 Value")
 plt.grid()
-plt.savefig("visuals/pc3_dislocation_timeseries.png")
+plt.savefig("visuals/pc3_value_timeseries.png")
 plt.show()
 
 # Compute average explained variance for PC1, PC2, and PC3
