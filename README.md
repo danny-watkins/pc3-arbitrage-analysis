@@ -1,5 +1,8 @@
 # PC3 Spectral Arbitrage: A PCA-Fourier Learning Model
 
+**Author:** Danny Watkins  
+**Date:** March 28, 2025
+
 ## Overview
 The PC3 Spectral Arbitrage project implements a PCA-Fourier learning model focused on yield curve arbitrage. The project is designed to identify and exploit dislocations in the yield curve through a combination of Principal Component Analysis (PCA) and Fourier Transform techniques. The model leverages spectral analysis to detect cyclical patterns and anomalies, enhancing trading decisions and risk management strategies.
 
@@ -62,11 +65,11 @@ The analysis output includes:
 - Trading signals based on identified dislocations
 - Performance metrics from backtesting
 
-## Project Paper
-The full research paper detailing the methodology and mathematical derivations can be found here.
-
 ## Contributions
 Contributions are welcome. Please fork the repository and submit a pull request with detailed changes.
+
+## Project Paper
+The full research paper detailing the methodology and mathematical derivations can be found [here](link-to-paper).
 
 ## Contact
 For questions or collaborations, feel free to reach out to Danny Watkins at maximus@arizona.edu.
