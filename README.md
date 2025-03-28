@@ -62,6 +62,10 @@ The analysis output includes:
 - Trading signals based on identified dislocations
 - Performance metrics from backtesting
 
+Project Paper
+
+The full research paper detailing the methodology and mathematical derivations can be found here.
+
 ## Contributions
 Contributions are welcome. Please fork the repository and submit a pull request with detailed changes.
 
