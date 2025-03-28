@@ -65,9 +65,6 @@ The analysis output includes:
 ## Contributions
 Contributions are welcome. Please fork the repository and submit a pull request with detailed changes.
 
-## License
-This project is licensed under the MIT License.
-
 ## Contact
-For questions or collaborations, feel free to reach out to Danny Watkins at dannywatkins@example.com.
+For questions or collaborations, feel free to reach out to Danny Watkins at maximus@arizona.edu.
 
