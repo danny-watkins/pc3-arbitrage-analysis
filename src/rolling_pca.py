@@ -1,12 +1,13 @@
 """
-rolling_pca.py
---------------
+Rolling PCA Analysis
+-------------------------------
 Author: Danny Watkins
 Date: 2025
 Description:
 Applies Rolling Principal Component Analysis (PCA) to yield curve data,
 saves properly formatted numerical results for Fourier analysis and trading,
 and generates PCA visualizations.
+
 """
 
 import numpy as np
@@ -14,26 +15,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+import json
+import os
+
+# Load Configuration
+def load_config():
+    with open("config.json", "r") as f:
+        return json.load(f)
+
+config = load_config()
+mid_maturities = config['mid_maturities']
+start_date = config['start_date']
+end_date = config['end_date']
 
 # Load Yield Curve Data
 yield_curve = pd.read_csv("data/yield_curve_data.csv", parse_dates=["Date"], index_col="Date")
-
-# Ensure maturities are sorted the same way as identify_butterfly_maturities.py
-def extract_maturity_number(maturity_label):
-    maturity = maturity_label.replace("DGS", "").replace("MO", "").replace("Y", "")
-    is_month = "MO" in maturity_label  # True for MO maturities
-    try:
-        return (is_month, int(maturity))  # Return (is_month flag, maturity value)
-    except ValueError:
-        return (False, None)  # Return invalid flag
-
-def custom_maturity_sort(maturity_label):
-    is_month, num = extract_maturity_number(maturity_label)
-    return (not is_month, num)  # Sort by (is_month flag, numeric value)
-
-# Sort maturities correctly before PCA
-sorted_maturities = sorted(yield_curve.columns, key=custom_maturity_sort)
-yield_curve = yield_curve[sorted_maturities]
 
 # Standardize the Data
 scaler = StandardScaler()
@@ -61,16 +57,20 @@ for i in range(len(yield_curve) - window_size):
     }
 
     # Store PCA component weights for each maturity
-    for j, maturity in enumerate(sorted_maturities):  
+    for j, maturity in enumerate(yield_curve.columns):
         pca_output[f"PC1_{maturity}"] = pca.components_[0][j]
         pca_output[f"PC2_{maturity}"] = pca.components_[1][j]
         pca_output[f"PC3_{maturity}"] = pca.components_[2][j]
 
-    # Compute the actual PC3 time series (PC3 movements)
+    # Compute the actual PC scores (PC1, PC2, PC3 movements)
+    pc1_series = np.dot(window_data, pca.components_[0])
+    pc2_series = np.dot(window_data, pca.components_[1])
     pc3_series = np.dot(window_data, pca.components_[2])
 
-    # Save the most recent PC3 value
-    pca_output["PC3_Value"] = pc3_series[-1]
+    # Save the most recent PC scores
+    pca_output["PC1_Score"] = pc1_series[-1]
+    pca_output["PC2_Score"] = pc2_series[-1]
+    pca_output["PC3_Score"] = pc3_series[-1]
 
     rolling_pca_results.append(pca_output)
 
@@ -78,6 +78,7 @@ for i in range(len(yield_curve) - window_size):
 rolling_pca_df = pd.DataFrame(rolling_pca_results)
 
 # Save to CSV
+os.makedirs("data", exist_ok=True)
 rolling_pca_df.to_csv("data/rolling_pca_results.csv", index=False)
 print(f"✅ Total rows generated: {len(rolling_pca_df)}")
 print("✅ Rolling PCA results saved successfully.")
@@ -98,47 +99,29 @@ plt.ylabel("Explained Variance Ratio")
 plt.legend()
 plt.grid()
 plt.savefig("visuals/pca_explained_variance.png")
-plt.show()
+plt.close()
 
-# Plot PC3 Value Time Series
+print("✅ PCA Explained Variance visualization saved.")
+
+# ------------------ VISUALIZATION: Explained Variance ------------------
+# Explained Variance Bar Plot with Percentages and No Grid Lines
+explained_variance = [pca.explained_variance_ratio_[0], pca.explained_variance_ratio_[1], pca.explained_variance_ratio_[2]]
+components = ["PC1", "PC2", "PC3"]
+
 plt.figure(figsize=(12, 6))
-plt.plot(rolling_pca_df["date"], rolling_pca_df["PC3_Value"], color="blue")
-plt.title("PC3 Value Time Series")
-plt.xlabel("Date")
-plt.ylabel("PC3 Value")
-plt.grid()
-plt.savefig("visuals/pc3_value_timeseries.png")
-plt.show()
+bars = plt.bar(components, explained_variance, color=["green", "orange", "blue"])
 
-# Compute average explained variance for PC1, PC2, and PC3
-explained_variance_pc1 = rolling_pca_df["Explained_Variance_PC1"].mean()
-explained_variance_pc2 = rolling_pca_df["Explained_Variance_PC2"].mean()
-explained_variance_pc3 = rolling_pca_df["Explained_Variance_PC3"].mean()
+# Add percentage labels above the bars
+for bar, var in zip(bars, explained_variance):
+    height = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width() / 2, height, f'{var*100:.2f}%', ha='center', va='bottom', fontsize=12, fontweight='bold')
 
-# Store variance contributions
-variance_contributions = [explained_variance_pc1, explained_variance_pc2, explained_variance_pc3]
-labels = ["PC1", "PC2", "PC3"]
-
-# Print variance percentages to console
-print("\n📊 Explained Variance Contributions:")
-print(f"PC1: {explained_variance_pc1:.2%}")
-print(f"PC2: {explained_variance_pc2:.2%}")
-print(f"PC3: {explained_variance_pc3:.2%}")
-
-# Plot explained variance contributions
-plt.figure(figsize=(8, 6))
-plt.bar(labels, variance_contributions, color=["green", "orange", "blue"])
-plt.xlabel("Principal Component")
-plt.ylabel("Average Explained Variance Ratio")
 plt.title("Explained Variance Contribution of PC1, PC2, and PC3")
+plt.xlabel("Principal Component")
+plt.ylabel("Explained Variance Ratio")
 plt.ylim(0, 1)
+plt.grid(False)  # Remove grid lines
+plt.savefig("visuals/explained_variance_contribution.png")
+plt.close()
 
-# Annotate the bars with percentage values
-for i, v in enumerate(variance_contributions):
-    plt.text(i, v + 0.02, f"{v:.2%}", ha="center", fontsize=12, fontweight="bold")
-
-# Save the visual
-plt.savefig("visuals/pca_explained_variance.png")
-plt.show()
-
-print("✅ Explained variance visualization saved to visuals folder.")
+print("✅ Explained Variance Contribution visualization saved.")
