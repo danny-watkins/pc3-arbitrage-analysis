@@ -13,6 +13,11 @@
 # 3. Combined 80/20 Weighted Signal
 # 4. Overlay of raw signal with combined smoothed signal
 # 5. Energy Spectrum Visualization with Cutoff Lines (Zoomed)
+# 6. Smoothed PC3 signal vs. DGS5 yield
+# 7. Overlay of DGS5 yield, raw PC3, and smoothed PC3 signal
+# 8. Trading Signals Overlayed on All Three Lines
+# 9. Trading Signals Overlayed on DGS5 Yield Alone (all normalized)
+# 10. Correlation of Slopes: Fourier vs DGS5
 
 import numpy as np
 import pandas as pd
@@ -20,6 +25,7 @@ import scipy.fftpack
 import matplotlib.pyplot as plt
 import json
 import os
+from scipy.stats import zscore, pearsonr
 
 # Ensure visuals directory exists
 os.makedirs("visuals", exist_ok=True)
@@ -82,20 +88,13 @@ filtered_fft[np.abs(frequencies) > weighted_cutoff] = 0
 smoothed_signal = np.real(scipy.fftpack.ifft(filtered_fft))
 
 # Save the smoothed signal for trading signals
-filtered_df = pd.DataFrame({"Date": rolling_pca["date"], best_maturity: smoothed_signal})
+filtered_df = pd.DataFrame({"Date": rolling_pca["date"], "Fourier_Signal": smoothed_signal})
 filtered_df.to_csv("data/fourier_filtered_signals.csv", index=False)
 
-# Visualization: Overlay Raw Signal with Smoothed Signal
-plt.figure(figsize=(12, 6))
-plt.plot(rolling_pca["date"], pc3_series, label="Raw Signal", color="gray", alpha=0.6)
-plt.plot(rolling_pca["date"], smoothed_signal, label="Weighted Smoothed Signal (80/20)", color="purple", linestyle="--")
-plt.title("Overlay of Raw Signal with Smoothed Signal (80/20)")
-plt.xlabel("Date")
-plt.ylabel("PC3 Value")
-plt.legend()
-plt.grid(True)
-plt.savefig("visuals/overlay_smoothed_signal.png")
-plt.close()
+# Load actual DGS5 yield curve data
+yield_curve = pd.read_csv("data/yield_curve_data.csv", parse_dates=["Date"])
+yield_curve.set_index("Date", inplace=True)
+dgs5_rates = yield_curve["DGS5"].reindex(rolling_pca["date"]).reset_index(drop=True)
 
-print("✅ Fourier Transform applied and visuals saved to 'visuals/' folder.")
+
 

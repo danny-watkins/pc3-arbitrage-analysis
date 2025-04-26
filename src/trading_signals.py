@@ -95,14 +95,6 @@ print(f"Annualized Return: {annualized_return * 100:.2f}%")
 print(f"Sharpe Ratio: {sharpe_ratio:.2f}")
 print(f"Maximum Drawdown: {max_drawdown:.2f}%")
 
-# Plotting Equity Curve
-plt.figure(figsize=(14, 8))
-plt.plot(merged["Date"], equity_curve, label="Equity Curve", color="blue")
-plt.title("Equity Curve - Backtesting Results")
-plt.xlabel("Date")
-plt.ylabel("Account Balance ($)")
-plt.grid(True)
-plt.show()
 
 # Visualization of Trades on Raw and Fourier Signal
 plt.figure(figsize=(16, 8))
