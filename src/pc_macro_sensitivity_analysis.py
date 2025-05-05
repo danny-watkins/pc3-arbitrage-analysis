@@ -1,83 +1,64 @@
-# pc_macro_sensitivity_analysis.py
-# ---------------------------------
-# Author: Danny Watkins
-# Date: 2025
-# Description:
-# Tests sensitivity of PC1, PC2, and PC3 to macro factors (VIX, monetary policy).
+"""
+pc_macro_sensitivity_analysis.py
+---------------------------------
+Author: Danny Watkins
+Date: 2025
+Description:
+Computes and visualizes correlation of PC scores (PC1–PC3) with VIX, segmented by market volatility regime.
+"""
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import json
 
-# Ensure output folders exist
-os.makedirs("visuals", exist_ok=True)
+# -------------------- Load Configuration --------------------
+def load_config():
+    with open("config.json", "r") as f:
+        return json.load(f)
 
-# Load Data
-rolling_pca = pd.read_csv("data/rolling_pca_results.csv", parse_dates=["date"])
-vix_data = pd.read_csv("data/vix_data.csv", parse_dates=["Date"])
-monetary_policy = pd.read_csv("data/monetary_policy.csv", parse_dates=["Date"])
+config = load_config()
+data_dir = config.get("data_dir", "data")
+visuals_dir = os.path.join(config.get("visuals_dir", "visuals"), "macro_sensitivity")
+
+# -------------------- Setup --------------------
+sns.set(style="whitegrid", context="talk")
+os.makedirs(visuals_dir, exist_ok=True)
+
+# -------------------- Load Data --------------------
+rolling_pca = pd.read_csv(os.path.join(data_dir, "rolling_pca_results.csv"), parse_dates=["date"])
+vix_data = pd.read_csv(os.path.join(data_dir, "vix_data.csv"), parse_dates=["Date"])
 
 rolling_pca.set_index("date", inplace=True)
 vix_data.set_index("Date", inplace=True)
-monetary_policy.set_index("Date", inplace=True)
 
-# Merge PC scores with VIX
+# -------------------- Merge and Segment --------------------
 merged = rolling_pca.join(vix_data, how="inner")
-
-# 1️⃣ Correlation between PC scores and VIX
-print("\n📈 Correlation with VIX:")
-for pc in ["PC1_Score", "PC2_Score", "PC3_Score"]:
-    corr = merged[pc].corr(merged["VIX"])
-    print(f"{pc} vs VIX Correlation: {corr:.4f}")
-
-# 2️⃣ Behavior around monetary policy changes
-print("\n📈 Behavior around Monetary Policy Changes:")
-
-# Create 'Policy Event' flag
-merged["Policy_Event"] = 0
-merged.loc[merged.index.intersection(monetary_policy.index), "Policy_Event"] = 1
-
-# Window: +/- 10 trading days around event
-window = 10
-event_windows = []
-
-for event_date in monetary_policy.index:
-    window_dates = pd.date_range(event_date - pd.Timedelta(days=window*1.5), event_date + pd.Timedelta(days=window*1.5))
-    window_data = merged.loc[merged.index.intersection(window_dates)]
-    event_windows.append(window_data)
-
-event_data = pd.concat(event_windows)
-
-# Average PC behavior around events
-avg_pc1 = event_data.groupby(event_data.index - event_data.index[0])["PC1_Score"].mean()
-avg_pc2 = event_data.groupby(event_data.index - event_data.index[0])["PC2_Score"].mean()
-avg_pc3 = event_data.groupby(event_data.index - event_data.index[0])["PC3_Score"].mean()
-
-# Plot
-plt.figure(figsize=(12, 6))
-plt.plot(avg_pc1.index.days, avg_pc1.values, label="PC1_Score", color="green")
-plt.plot(avg_pc2.index.days, avg_pc2.values, label="PC2_Score", color="orange")
-plt.plot(avg_pc3.index.days, avg_pc3.values, label="PC3_Score", color="blue")
-plt.axvline(x=0, linestyle="--", color="black", label="Policy Event")
-plt.title("Average PC Score Behavior Around Monetary Policy Changes")
-plt.xlabel("Days from Event")
-plt.ylabel("Average Score")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("visuals/pc_behavior_around_policy_events.png")
-plt.close()
-
-print("✅ Saved PC behavior plot around policy events to 'visuals/pc_behavior_around_policy_events.png'")
-
-# 3️⃣ Variance of PCs in High VIX vs Low VIX periods
 vix_median = merged["VIX"].median()
 merged["VIX_Regime"] = np.where(merged["VIX"] > vix_median, "High VIX", "Low VIX")
 
-print("\n📈 Variance of PCs during High vs Low VIX Regimes:")
+# -------------------- Compute Correlations --------------------
+results = []
 for pc in ["PC1_Score", "PC2_Score", "PC3_Score"]:
-    var_high = merged[merged["VIX_Regime"] == "High VIX"][pc].var()
-    var_low = merged[merged["VIX_Regime"] == "Low VIX"][pc].var()
-    print(f"{pc} Variance - High VIX: {var_high:.6f}, Low VIX: {var_low:.6f}")
+    for regime in ["High VIX", "Low VIX"]:
+        subset = merged[merged["VIX_Regime"] == regime]
+        corr = subset[pc].corr(subset["VIX"])
+        results.append({"PC": pc, "Regime": regime, "Correlation": corr})
+
+corr_df = pd.DataFrame(results)
+
+# -------------------- Plot --------------------
+plt.figure(figsize=(10, 6))
+sns.barplot(data=corr_df, x="PC", y="Correlation", hue="Regime", palette="muted")
+plt.title("Correlation of PC Scores with VIX by Market Regime")
+plt.ylabel("Pearson Correlation")
+plt.ylim(-1, 1)
+plt.axhline(0, linestyle="--", color="gray")
+plt.tight_layout()
+plot_path = os.path.join(visuals_dir, "pc_vix_correlation_by_regime.png")
+plt.savefig(plot_path)
+plt.close()
+
+print(f"[INFO] Saved correlation by regime plot to '{plot_path}'")

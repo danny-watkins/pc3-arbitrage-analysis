@@ -1,76 +1,91 @@
-# PC3 Spectral Arbitrage: A PCA-Fourier Learning Model
+# PC3 Spectral Analysis: A PCA and Fourier  Modeling Approach for Yield Curve Curvature
 
-**Author:** Danny Watkins  
-**Date:** March 28, 2025
+Author: Danny Watkins  
+Date: 2025
+
+---
 
 ## Overview
-The PC3 Spectral Arbitrage project implements a PCA-Fourier learning model focused on yield curve arbitrage. The project is designed to identify and exploit dislocations in the yield curve through a combination of Principal Component Analysis (PCA) and Fourier Transform techniques. The model leverages spectral analysis to detect cyclical patterns and anomalies, enhancing trading decisions and risk management strategies.
 
-### Project Structure
-The project is organized as follows:
+The PC3 Spectral Arbitrage project analyzes U.S. Treasury yield curve dynamics by applying Principal Component Analysis (PCA) and Fourier Transform smoothing to identify dislocations in the third principal component (PC3), associated with curvature. This dislocation signal is used to generate long/short trade signals based on Z-score deviations and slope reversals.
 
-```
-project_root/
-├── data/                 # Datasets used for analysis
-├── scripts/              # Core analysis scripts
-├── models/               # Machine learning models and utilities
-├── visuals/              # Scripts and images for visualizations
-├── tests/                # Unit tests for each module
-├── reports/              # Final results and analysis reports
-└── README.md             # Project documentation (this file)
-```
+The pipeline includes statistical diagnostics (e.g., mean reversion metrics), macro context overlays (e.g., VIX sensitivity), and signal validation against butterfly curvature and synthetic portfolios.
 
-### Key Features
-- PCA for dimensionality reduction and principal component extraction
-- Fourier Transform for detecting cyclical patterns in yield curve dislocations
-- Machine learning models for yield curve prediction and arbitrage opportunity detection
-- Backtesting framework for strategy evaluation
-- Visualization tools for data analysis and result presentation
+---
+
+## Project Structure
+
+pc3-spectral-arbitrage/
+├── config.json                      # Central config file for parameters
+├── requirements.txt                # Python dependencies
+├── scripts/
+│   ├── main.py                     # Master script to run entire pipeline
+│   ├── data_loader.py              # Fetches and saves FRED data (yield, VIX, Fed Funds)
+│   ├── rolling_pca_analysis.py     # Rolling PCA analysis and score generation
+│   ├── fourier_transform.py        # Fourier smoothing of PC3
+│   ├── smooth_all_pc_scores.py     # Fourier smoothing for PC1–PC3
+│   ├── pc3_signal_trading.py       # Trade signal generation from PC3 dislocations
+│   ├── pc3_mean_reversion_analysis.py  # Mean reversion metrics + plots
+│   ├── pc_macro_sensitivity_analysis.py # VIX sensitivity by volatility regime
+│   ├── verify_pc3_vs_butterfly.py  # Validate PC3 vs butterfly & synthetic curvature
+│   └── pca_geometry_visuals.py     # Visual PCA interpretation (2D, 3D)
+├── data/                           # All intermediate and final datasets (CSV)
+├── visuals/                        # All figures, grouped by subfolder
+└── README.md                       # This file
+
+---
+
+## Key Features
+
+- Rolling PCA to identify structural shifts in yield curve shape
+- Fourier-based smoothing to isolate cyclical behavior in PC3
+- Z-score + slope-based logic to generate trade signals
+- Mean reversion analysis using half-life, ADF, MAD, and zero crossings
+- VIX correlation analysis by volatility regime
+
+
+---
 
 ## Installation
-To set up the project locally, follow these steps:
 
-1. Clone the repository:
-   ```bash
+1. Clone the repository
    git clone https://github.com/dannywatkins/pc3-spectral-arbitrage.git
    cd pc3-spectral-arbitrage
-   ```
 
-2. Set up a virtual environment (optional but recommended):
-   ```bash
+2. Create a virtual environment (optional)
    python3 -m venv env
-   source env/bin/activate   # On Windows: .\env\Scripts\activate
-   ```
+   source env/bin/activate  # On Windows: .\env\Scripts\activate
 
-3. Install required packages:
-   ```bash
+3. Install dependencies
    pip install -r requirements.txt
-   ```
+
+4. Set your FRED API key
+   export FRED_API_KEY=your_fred_key_here
+
+---
 
 ## Usage
-To run the main analysis script:
-```bash
-python scripts/main.py
-```
 
-To visualize results:
-```bash
-python scripts/visuals_generator.py
-```
+Run the full pipeline:
+   python scripts/main.py
 
-### Example Output
-The analysis output includes:
-- PCA visualization and interpretation
-- Fourier spectral analysis plots
-- Trading signals based on identified dislocations
-- Performance metrics from backtesting
+Run individual modules:
+   python scripts/pc3_signal_trading.py
+   python scripts/rolling_pca_analysis.py
+   python scripts/fourier_transform.py
+   ...
 
-## Contributions
-Contributions are welcome. Please fork the repository and submit a pull request with detailed changes.
+---
 
-## Project Paper
-The full research paper detailing the methodology and mathematical derivations can be found [here](link-to-paper).
+## Output
+
+- CSVs: All data stored in /data (e.g., PC scores, smoothed signals)
+- PNGs: All figures saved in /visuals with subfolders for each module
+- Logs: Print statements confirm successful saves and pipeline status
+
+---
 
 ## Contact
-For questions or collaborations, feel free to reach out to Danny Watkins at maximus@arizona.edu.
 
+Danny Watkins  
+maximus@arizona.edu

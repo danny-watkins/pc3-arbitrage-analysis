@@ -1,16 +1,16 @@
 # Core Scientific Libraries
-numpy
-pandas
-scipy
-matplotlib
-seaborn
+numpy>=1.24
+pandas>=1.5
+scipy>=1.10
+matplotlib>=3.6
+seaborn>=0.12
 
-# Machine Learning 
-torch             # PyTorch for deep learning
-gymnasium         # OpenAI Gym successor for Reinforcement Learning
+# Machine Learning
+torch>=2.0           # PyTorch for deep learning
+gymnasium>=0.29      # Reinforcement learning environment
 
 # Data Processing
-scikit-learn
+scikit-learn>=1.2    # For PCA, scaling, etc.
 
 # API for Yield Curve Data
-fredapi
+fredapi>=0.5.0       # Interface with FRED API

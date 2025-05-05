@@ -2,5 +2,12 @@
     "belly_maturity": "PC3_DGS5",
     "mid_maturities": ["DGS3", "DGS5", "DGS7", "DGS10"],
     "start_date": "2015-01-01",
-    "end_date": "2025-01-01"
+    "end_date": "2025-01-01",
+    "window_size": 250,
+    "smoothing_cutoff": 0.85,
+    "signal_threshold_z": 1.5,
+    "signal_slope_min": 0.005,
+    "visuals_dir": "visuals",
+    "data_dir": "data",
+    "pca_components": 3
 }
