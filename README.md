@@ -83,6 +83,16 @@ Run individual modules:
 - PNGs: All figures saved in /visuals with subfolders for each module
 - Logs: Print statements confirm successful saves and pipeline status
 
+### Additional Materials
+
+- **Presentation:**  
+  [PC3 Spectral Arbitrage – Canva Slides](https://www.canva.com/design/DAGh8Y-SZw8/n1P25jCb5vHezFNze0_n6A/edit?utm_content=DAGh8Y-SZw8&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
+- **Research Paper (LaTeX):**  
+  The full academic write-up including mathematical derivations, model explanation, and results is located in:  
+  [`reports/pc3_spectral_arbitrage.tex`](reports/pc3_spectral_arbitrage.tex)
+
+
 ---
 
 ## Contact
