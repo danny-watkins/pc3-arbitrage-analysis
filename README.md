@@ -12,9 +12,9 @@ The PC3 Spectral Arbitrage project analyzes U.S. Treasury yield curve dynamics b
 The pipeline includes statistical diagnostics (e.g., mean reversion metrics), macro context overlays (e.g., VIX sensitivity), and signal validation against butterfly curvature and synthetic portfolios.
 
 ---
+### Project Structure
 
-## Project Structure
-
+```text
 pc3-spectral-arbitrage/
 ├── config.json                      # Central config file for parameters
 ├── requirements.txt                # Python dependencies
@@ -32,6 +32,7 @@ pc3-spectral-arbitrage/
 ├── data/                           # All intermediate and final datasets (CSV)
 ├── visuals/                        # All figures, grouped by subfolder
 └── README.md                       # This file
+
 
 ---
 
