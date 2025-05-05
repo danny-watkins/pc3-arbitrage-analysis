@@ -32,7 +32,7 @@ pc3-spectral-arbitrage/
 ├── data/                           # All intermediate and final datasets (CSV)
 ├── visuals/                        # All figures, grouped by subfolder
 └── README.md                       # This file
-
+```
 
 ---
 
