@@ -1,98 +1,120 @@
-# PC3 Spectral Analysis: A PCA and Fourier  Modeling Approach for Yield Curve Curvature
+# PC3 Spectral Analysis: A PCA and Fourier Modeling Approach for Yield Curve Curvature
 
 Author: Danny Watkins  
+University of Arizona — MATH485: Mathematical Modeling  
 Date: 2025
 
 ---
 
 ## Overview
 
-The PC3 Spectral Arbitrage project analyzes U.S. Treasury yield curve dynamics by applying Principal Component Analysis (PCA) and Fourier Transform smoothing to identify dislocations in the third principal component (PC3), associated with curvature. This dislocation signal is used to generate long/short trade signals based on Z-score deviations and slope reversals.
+This project analyzes structural shape shifts in the U.S. Treasury yield curve by applying Principal Component Analysis (PCA) and Fourier Transform smoothing to the third principal component (PC3) — the factor most associated with curvature.
 
-The pipeline includes statistical diagnostics (e.g., mean reversion metrics), macro context overlays (e.g., VIX sensitivity), and signal validation against butterfly curvature and synthetic portfolios.
+We construct a real-time curvature signal using PCA eigenvector loadings and implement a trade signal framework based on statistical dislocation thresholds and slope-confirmation logic. Results show that traditional proxies like 2s5s10s butterflies fail to track curvature reliably, and we propose a PCA-weighted portfolio as a cleaner alternative.
 
 ---
-### Project Structure
 
-```text
+## Project Structure
+
+```
 pc3-spectral-arbitrage/
-├── config.json                      # Central config file for parameters
-├── requirements.txt                # Python dependencies
+├── config.json                      # Central config file
+├── requirements.txt                 # Python dependencies
+├── main.py                          # Runs full pipeline (calls all modules)
+├── reports/
+│   ├── PC3_Spectral_Analysis.pdf    # Final research paper (compiled)
+├── data/                            # Processed yield data, PC scores, signals
+├── visuals/                         # Output figures (organized by folder)
+│   ├── comparisons/
+│   ├── macro_sensitivity/
+│   ├── smoothing/
+│   ├── signals/
+│   └── pca_geometry/
 ├── scripts/
-│   ├── main.py                     # Master script to run entire pipeline
-│   ├── data_loader.py              # Fetches and saves FRED data (yield, VIX, Fed Funds)
-│   ├── rolling_pca_analysis.py     # Rolling PCA analysis and score generation
-│   ├── fourier_transform.py        # Fourier smoothing of PC3
-│   ├── smooth_all_pc_scores.py     # Fourier smoothing for PC1–PC3
-│   ├── pc3_signal_trading.py       # Trade signal generation from PC3 dislocations
-│   ├── pc3_mean_reversion_analysis.py  # Mean reversion metrics + plots
-│   ├── pc_macro_sensitivity_analysis.py # VIX sensitivity by volatility regime
-│   ├── verify_pc3_vs_butterfly.py  # Validate PC3 vs butterfly & synthetic curvature
-│   └── pca_geometry_visuals.py     # Visual PCA interpretation (2D, 3D)
-├── data/                           # All intermediate and final datasets (CSV)
-├── visuals/                        # All figures, grouped by subfolder
-└── README.md                       # This file
+│   ├── data_loader.py
+│   ├── rolling_pca_analysis.py
+│   ├── fourier_transform.py
+│   ├── smooth_all_pc_scores.py
+│   ├── pc3_signal_trading.py
+│   ├── pc3_mean_reversion_analysis.py
+│   ├── pc_macro_sensitivity_analysis.py
+│   ├── verify_pc3_vs_butterfly.py
+│   └── pca_geometry_visuals.py
+└── README.md
 ```
 
 ---
 
 ## Key Features
 
-- Rolling PCA to identify structural shifts in yield curve shape
-- Fourier-based smoothing to isolate cyclical behavior in PC3
-- Z-score + slope-based logic to generate trade signals
-- Mean reversion analysis using half-life, ADF, MAD, and zero crossings
-- VIX correlation analysis by volatility regime
-
+- Rolling PCA to isolate level (PC1), slope (PC2), and curvature (PC3)
+- Fourier-based smoothing of PC3 to filter high-frequency noise
+- Trade signal framework using Z-score dislocation and slope reversal
+- Statistical validation of curvature mean-reversion using ADF, half-life, MAD
+- Macro context overlays with VIX-based regime segmentation
+- Proxy analysis of traditional 2s5s10s butterfly trades
+- PCA-weighted portfolio construction for tracking curvature directly
 
 ---
 
 ## Installation
 
-1. Clone the repository
-   git clone https://github.com/dannywatkins/pc3-spectral-arbitrage.git
-   cd pc3-spectral-arbitrage
+1. Clone the repository:
+```bash
+git clone https://github.com/dannywatkins/pc3-spectral-arbitrage.git
+cd pc3-spectral-arbitrage
+```
 
-2. Create a virtual environment (optional)
-   python3 -m venv env
-   source env/bin/activate  # On Windows: .\env\Scripts\activate
+2. (Optional) Create a virtual environment:
+```bash
+python -m venv env
+source env/bin/activate  # On Windows: .\env\Scripts\activate
+```
 
-3. Install dependencies
-   pip install -r requirements.txt
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-4. Set your FRED API key
-   export FRED_API_KEY=your_fred_key_here
+4. Set your FRED API key as an environment variable:
+```bash
+export FRED_API_KEY=your_fred_key_here
+```
 
 ---
 
 ## Usage
 
-Run the full pipeline:
-   python scripts/main.py
+To run the full pipeline:
 
-Run individual modules:
-   python scripts/pc3_signal_trading.py
-   python scripts/rolling_pca_analysis.py
-   python scripts/fourier_transform.py
-   ...
+```bash
+python main.py
+```
+
+To run individual modules (example):
+
+```bash
+python scripts/fourier_transform.py
+python scripts/pc3_signal_trading.py
+```
 
 ---
 
 ## Output
 
-- CSVs: All data stored in /data (e.g., PC scores, smoothed signals)
-- PNGs: All figures saved in /visuals with subfolders for each module
-- Logs: Print statements confirm successful saves and pipeline status
+- Processed data saved to `data/`
+- Visualizations stored in `visuals/` (organized by module)
+- All final output files used in the paper are reproducible via code
 
-### Additional Materials
+---
+
+## Additional Materials
 
 - **Presentation:**  
   [PC3 Spectral Arbitrage – Canva Slides](https://www.canva.com/design/DAGh8Y-SZw8/n1P25jCb5vHezFNze0_n6A/edit?utm_content=DAGh8Y-SZw8&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
-- **Research Paper (LaTeX):**  
-  The full academic write-up including mathematical derivations, model explanation, and results is located in:  
-  [`reports/pc3_spectral_arbitrage.tex`](reports/pc3_spectral_arbitrage.tex)
-
+- **Research Paper (PDF):**  
+  [`reports/PC3_Spectral_Analysis.pdf`](reports/PC3_Spectral_Analysis.pdf)
 
 ---
 
