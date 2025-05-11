@@ -6,6 +6,7 @@ Updated: 2025
 Description:
 Applies Fourier Transform smoothing to the full PC3_Score (curvature factor)
 to prepare for trade entry and exit detection.
+Also saves raw PC3 signal and a standalone plot for reference.
 """
 
 import numpy as np
@@ -23,10 +24,12 @@ def load_config():
 config = load_config()
 data_dir = config.get("data_dir", "data")
 visuals_dir = os.path.join(config.get("visuals_dir", "visuals"), "smoothing")
+signals_dir = os.path.join(config.get("visuals_dir", "visuals"), "signals")
 
 # -------------------- Ensure output directories --------------------
 os.makedirs(data_dir, exist_ok=True)
 os.makedirs(visuals_dir, exist_ok=True)
+os.makedirs(signals_dir, exist_ok=True)
 
 # -------------------- Load Rolling PCA Results --------------------
 rolling_pca = pd.read_csv(os.path.join(data_dir, "rolling_pca_results.csv"), parse_dates=["date"])
@@ -70,7 +73,15 @@ filtered_df = pd.DataFrame({
 filtered_df.to_csv(os.path.join(data_dir, "fourier_filtered_signals.csv"), index=False)
 print(f"[OK] Smoothed PC3 signal saved to '{data_dir}/fourier_filtered_signals.csv'")
 
-# -------------------- Visualization --------------------
+# -------------------- Save Raw PC3 Signal for Visuals --------------------
+raw_signal_df = pd.DataFrame({
+    "Date": rolling_pca["date"],
+    "PC3_Score": pc3_series
+})
+raw_signal_df.to_csv(os.path.join(signals_dir, "raw_pc3_signal.csv"), index=False)
+print(f"[OK] Raw PC3 signal saved to '{signals_dir}/raw_pc3_signal.csv'")
+
+# -------------------- Comparison Visualization --------------------
 plt.figure(figsize=(12, 6))
 plt.plot(rolling_pca["date"], pc3_series, label="Raw PC3_Score", color="blue", alpha=0.6)
 plt.plot(rolling_pca["date"], smoothed_signal, label="Smoothed PC3_Score (Fourier)", color="green", linewidth=2)
@@ -83,7 +94,53 @@ plt.tight_layout()
 plot_path = os.path.join(visuals_dir, "pc3_vs_smoothed_pc3.png")
 plt.savefig(plot_path)
 plt.close()
-
 print(f"[OK] Fourier smoothing visualization saved to '{plot_path}'")
 
+# -------------------- Raw PC3 Signal Only Plot --------------------
+plt.figure(figsize=(12, 5))
+plt.plot(rolling_pca["date"], pc3_series, color="blue", linewidth=1.5)
+plt.title("Raw PC3 Score Over Time")
+plt.xlabel("Date")
+plt.ylabel("PC3 Score")
+plt.grid(True)
+plt.tight_layout()
+raw_plot_path = os.path.join(signals_dir, "raw_pc3_signal_plot.png")
+plt.savefig(raw_plot_path)
+plt.close()
+print(f"[OK] Raw PC3 signal plot saved to '{raw_plot_path}'")
 
+# -------------------- Energy Spectrum Zoomed-In Visualization --------------------
+plt.figure(figsize=(10, 5))
+
+# Sort frequency and power arrays by absolute frequency
+abs_freq = np.abs(frequencies)
+sorted_indices = np.argsort(abs_freq)
+abs_freq_sorted = abs_freq[sorted_indices]
+power_sorted = power_spectrum[sorted_indices]
+
+# Plot the full power spectrum
+plt.plot(abs_freq_sorted, power_sorted, label="Power Spectrum", color="black", alpha=0.6)
+
+# Fill area under retained frequencies (green)
+plt.fill_between(abs_freq_sorted, power_sorted, where=(abs_freq_sorted <= weighted_cutoff),
+                 color="green", alpha=0.3, label="Retained Frequencies")
+
+# Fill area under filtered frequencies (red)
+plt.fill_between(abs_freq_sorted, power_sorted, where=(abs_freq_sorted > weighted_cutoff),
+                 color="red", alpha=0.2, label="Filtered Out Frequencies")
+
+# Add cutoff line
+plt.axvline(x=weighted_cutoff, color="black", linestyle="--", linewidth=2, label="Weighted Cutoff (80/20)")
+
+plt.title("Energy Spectrum with Weighted Cutoff (Zoomed) for PC3 Score")
+plt.xlabel("Frequency")
+plt.ylabel("Power")
+plt.xlim(0, 0.05)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+spectrum_path = os.path.join(visuals_dir, "energy_spectrum_zoomed.png")
+plt.savefig(spectrum_path)
+plt.close()
+
+print(f"[OK] Energy spectrum visualization saved to '{spectrum_path}'")

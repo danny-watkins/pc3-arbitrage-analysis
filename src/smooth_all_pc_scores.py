@@ -56,7 +56,7 @@ def fourier_smooth(series, label="PC", energy_cutoff=0.85):
 
     # Plot raw vs smoothed
     plt.figure(figsize=(12, 5))
-    plt.plot(series.index, raw_signal, label=f"Raw {label}", color="blue", alpha=0.6)
+    plt.plot(series.index, raw_signal, label=f"Raw {label}", color="gray", alpha=0.6)
     plt.plot(series.index, smoothed_signal, label=f"Smoothed {label}", color="green", linewidth=2)
     plt.title(f"Fourier Smoothing: {label}")
     plt.xlabel("Date")
