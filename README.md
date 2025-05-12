@@ -114,7 +114,7 @@ python scripts/pc3_signal_trading.py
   [PC3 Spectral Arbitrage – Canva Slides](https://www.canva.com/design/DAGh8Y-SZw8/n1P25jCb5vHezFNze0_n6A/edit?utm_content=DAGh8Y-SZw8&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 - **Research Paper (PDF):**  
-  [`report/PC3_Spectral_Analysis.pdf`](reports/PC3_Spectral_Analysis.pdf)
+  [`report/PC3_Spectral_Analysis.pdf`](report/PC3_Spectral_Analysis.pdf)
 
 ---
 
